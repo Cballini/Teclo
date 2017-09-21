@@ -1,20 +1,13 @@
 package com.teclo.cballini.teclo;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.view.ViewPropertyAnimatorCompatSet;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ImageView;
 
 import java.util.ArrayList;
 
@@ -173,8 +166,11 @@ public class GridActivity extends AppCompatActivity implements AdapterView.OnIte
         else{
             String pushDir = pushOk(y,x,ny,nx);
             //move ko mais en poussant des pièces ?
-            if(pushDir.equals("")){
+            if(!pushDir.equals("")){
+                pushPieces(ny,nx,pushDir);
                 Log.i("test", "push possible");
+                updateImgItems();
+                gridView.setAdapter(gridAdapter);
             }
         }
     }
@@ -202,6 +198,7 @@ public class GridActivity extends AppCompatActivity implements AdapterView.OnIte
             while (nPos<xyToPos(ny,nx)+(col_MAX-y-1) && pushDir.equals("")){
                 if(gridPieces[posToY(nPos)][posToX(nPos)].getTeam()==-1){
                     pushDir = "d";
+                    nPos--;
                 }
                 nPos++;
             }
@@ -210,6 +207,7 @@ public class GridActivity extends AppCompatActivity implements AdapterView.OnIte
             while (nPos>xyToPos(ny,nx)-y && pushDir.equals("")){
                 if(gridPieces[posToY(nPos)][posToX(nPos)].getTeam()==-1){
                     pushDir = "g";
+                    nPos++;
                 }
                 nPos--;
             }
@@ -218,20 +216,20 @@ public class GridActivity extends AppCompatActivity implements AdapterView.OnIte
             while (nPos<col_MAX*row_MAX && pushDir.equals("")){
                 if(gridPieces[posToY(nPos)][posToX(nPos)].getTeam()==-1){
                     pushDir = "b";
+                    nPos=nPos-col_MAX;
                 }
                 nPos=nPos+col_MAX;
             }
-
         }
         else if(gap==-col_MAX) { //haut
             while (nPos>=0 && pushDir.equals("")){
                 if(gridPieces[posToY(nPos)][posToX(nPos)].getTeam()==-1){
                     pushDir = "h";
+                    nPos=nPos+col_MAX;
                 }
                 nPos=nPos-col_MAX;
             }
         }
-
         return pushDir;
     }
 
@@ -239,16 +237,28 @@ public class GridActivity extends AppCompatActivity implements AdapterView.OnIte
     private void pushPieces(int ny, int nx, String pushDir){
         switch (pushDir){
             case "d":
-                for (int gap=nPos;gap>nPos-ny;gap--){
-                    gridPieces[posToY(nPos)][posToX(nPos)] = new Piece(gridPieces[posToY(nPos)-1][posToX(nPos)]);
+                for (int i=nPos;i>nPos-ny;i--){
+                    gridPieces[posToY(i)][posToX(i)] = new Piece(gridPieces[posToY(i)-1][posToX(i)]);
                 }
                 gridPieces[ny-1][nx] = new Piece();
                 break;
             case "g":
+                for (int i=nPos;i<nPos+(col_MAX-ny);i++){
+                    gridPieces[posToY(i)][posToX(i)] = new Piece(gridPieces[posToY(i)+1][posToX(i)]);
+                }
+                gridPieces[ny+1][nx] = new Piece();
                 break;
             case "b":
+                for (int i=nPos; i>=xyToPos(ny,nx); i-=col_MAX){
+                    gridPieces[posToY(i)][posToX(i)] = new Piece(gridPieces[posToY(i)][posToX(i)-1]);
+                }
+                gridPieces[ny][nx-1] = new Piece();
                 break;
             case "h":
+                for (int i=nPos; i<=xyToPos(ny,nx);i+=col_MAX){
+                    gridPieces[posToY(i)][posToX(i)] = new Piece(gridPieces[posToY(i)][posToX(i)+1]);
+                }
+                gridPieces[ny][nx+1] = new Piece();
                 break;
             default:
                 break;
